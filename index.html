@@ -1,0 +1,256 @@
+<!-- template core-app -->
+<template id="core-app">
+<transition name="fade" appear>
+	<div id="core">
+		<div 
+			class="progress" 
+			:style="{height: progress}"
+		></div>
+		<div class="top-menu content">
+			<div v-if="position.length == 0">
+				<span 
+					class="top-menu__btn addToDO" 
+					@click="addToDoList"
+				>Добавить список</span>
+				<span 
+					class="top-menu__btn" 
+					@click="deleteHecked" 
+					:class="{disabled: lengthDeleteHecked == 0}"
+					title="Удалить выполненные списки"
+				>Удалить выполненные списки{{lengthDeleteHecked | surround}}</span>
+			</div>
+			<div v-else>
+				<span 
+					class="top-menu__btn top-menu__back" 
+					@click="back"
+				>🠜 {{backName}}</span>
+			</div>
+			<div>
+				<span 
+					class="top-menu__btn top-menu__toggle-scheme" 
+					@click="toggleScheme"
+					:class="{dark: dark}" 
+				>Тема: {{dark ? 'Тёмная' : 'Светлая'}}</span>
+			</div>
+		</div>
+		
+		<div 
+			class="content" 
+			v-if="lenghtTODOS == 0" 
+		>Задач нет</div>
+		<to-do-list 
+			v-for="item in displayedToDoList" 
+			:key="item.id" 
+			:list="item.list" 
+			:head="item.head" 
+			:id="item.id"
+		></to-do-list>
+	</div>
+</transition>
+</template>
+
+
+<!-- template to-do-list -->
+<template id="to-do-list">
+	<div 
+		class="to-do-list content"
+		:class="{fixed: fixed == id}" >
+		<header class="to-do-list__header header-to-do">
+			<div class="to-do-list__header__control">
+				<div>
+					<span 
+						class="btn" 
+						@click="deleteList" 
+					>Удалить лист</span>
+					<span 
+						class="btn"
+						@click="deleteCheckedTask" 
+						:class="{disabled: lengthCheckedTask == 0}" 
+						title="Удалить отмеченные задачи"
+					>Удалить отмеченные задачи{{lengthCheckedTask | surround}}</span>
+					<span 
+						class="btn" 
+						@click="deleteAllTask" 
+						:class="{disabled: list.length == 0}" 
+						title="Удалить все задачи"
+					>Удалить все задачи{{list.length | surround}}</span>
+				</div>
+				<div>
+					<span 
+						class="btn fixed" 
+						@click="fixing" 
+						title="Закрепить"
+					>🚀</span>
+				</div>
+			</div>
+			<h2>
+				<user-input 
+					:value="head" 
+					@change-value="changeValue" 
+				></user-input>
+			</h2>
+		
+			<div 
+				class="header-to-do__new"
+				:class="{disabled: this.newToDo == ''}">
+				<div class="header-to-do__new__val">
+					<input 
+						type="text" 
+						placeholder="Нужно..." 
+						@keyup.enter="addToDo" 
+						v-model.trim="newToDo" 
+				 	>
+				</div>
+				<div 
+					class="header-to-do__new__add" 
+					@click="addToDo" 
+					:title="this.newToDo != '' ? 'Enter' : ''"
+			 	>Добавить</div>
+				<span 
+					class="progress" 
+					:style="{width: progress}"
+				></span>
+			</div>
+		</header>
+		
+		<div 
+			class="to-do-list__body list"
+			@dragleave.prevent="onDragLeave" >
+			<drag-item
+				v-for="(item, index) in list" 
+				v-if="index + 1 <= countVisible" 
+				:key="item.id" 
+				:class="{
+					'drag-over': isDragOver(item.id), 
+					top: dragВirection == 1 && isDragOver(item.id), 
+					bottom: dragВirection == -1 && isDragOver(item.id), 
+					draging: item.id == dragItem
+				}" 
+				@itemmoved="onItemMoved" 
+				@itemdragover="onDragOver" 
+				:task="item" 
+				:listid="id" 
+			></drag-item>
+			<div 
+				class="show-all" 
+				v-if="list.length > countVisible" 
+				@click="showAll" 
+			>Показать все</div>
+		</div>
+	</div>
+</template>
+
+
+<!-- template drag-item -->
+<template id="drag-item">
+<transition name="fade" appear>
+	<div 
+		:draggable="disabledInput" 
+		@dragstart="onDragStart" 
+		@dragover.prevent="upDragOver" 
+		@drop.prevent="onDrop" >
+		<to-do-list-item 
+			v-if="task.type == 'task'" 
+			:value="task.value" 
+			:checked="task.checked" 
+			:id="task.id" 
+			:listid="listid" 
+			@disabled-input="disabledInput = $event" 
+		></to-do-list-item>
+		<to-do-list-item_link 
+			v-else-if="task.type == 'link'" 
+			:value="task.value" 
+			:checked="task.checked" 
+			:link="task.link" 
+			:id="task.id" 
+			:listid="listid" 
+			@disabled-input="disabledInput = $event" 
+		></to-do-list-item_link>
+	</div>
+</transition>
+</template>
+
+
+<!-- template to-do-list-item -->
+<template id="to-do-list-item">
+	<div 
+		class="list__to-do" 
+		:class="{completed: checked}">
+		<div 
+			class="list__to-do__status" 
+			@click="toggleStatus"
+	 	></div>
+		<div 
+			class="list__to-do__value">
+			<user-input 
+				:value.trim="value" 
+				@click="toggleStatus" 
+				@remove="deleteItem" 
+				@change-value="changeValue" 
+				@disabled-input="$emit('disabled-input', $event)" 
+				:id="id" 
+				placeholder="Ещё одно такое нажатие и я удалюсь..."
+			></user-input>
+		</div>
+		<div class="list__to-do__menu">
+			<div class="list__to-do__popup hidden">
+				<div class="item" @click="deleteItem">Удалить задачу</div>
+				<div class="item" @click="toList">Преобразовать в скрытый список</div>
+				<div class="item" @click="toToDo">Создать список</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+
+<!-- template to-do-list-item_link -->
+<template id="to-do-list-item_link">
+	<div 
+		class="list__to-do link" 
+		:class="{completed: checked}" >
+		<div 
+			class="list__to-do__status" 
+			@click="go"
+	 	></div>
+		<div 
+			class="list__to-do__value">
+			<user-input 
+				:value.trim="value" 
+				@click="go" 
+				@remove="deleteLink" 
+				@change-value="changeValue" 
+				@disabled-input="$emit('disabled-input', $event)" 
+				:id="id" 
+			></user-input>
+		</div>
+		<div class="list__to-do__menu">
+			<div class="list__to-do__popup hidden">
+				<div class="item" @click="deleteLink">Удалить скрытый список</div>
+				<div class="item" @click="toTask">Расформировать скрытый список</div>
+				<div class="item" @click="toToDo">Создать список</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+
+<!-- template user-input -->
+<template id="user-input">
+	<div 
+		class="user-input" 
+		:class="{edit: !disabled, 'visibility-placeholder': visibilityPlaceholder}" 
+	 	@click="edit" 
+		@blur="blur" 
+		@keydown.enter="disabled = true" 
+	 	@keydown.delete="remove" 
+		@keydown="onKeydown" 
+		:contentEditable="!disabled" 
+		:title="disabled ? 'dblclick' : ''" 
+	>{{value}}</div>
+</template>
+
+
+<!-- app -->
+<div id="app">
+	<core-app></core-app>
+</div>
