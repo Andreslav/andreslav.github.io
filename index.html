@@ -12,7 +12,7 @@
 	
 <!-- template core-app -->
 <template id="core-app">
-<transition name="fade" appear>
+<script type="text/x-template" name="fade" appear>
 	<div id="core">
 		<div 
 			class="progress" 
@@ -63,7 +63,7 @@
 
 
 <!-- template to-do-list -->
-<template id="to-do-list">
+<script type="text/x-template" id="to-do-list">
 	<div 
 		class="to-do-list content"
 		:class="{fixed: fixed == id}" >
@@ -154,7 +154,7 @@
 
 
 <!-- template drag-item -->
-<template id="drag-item">
+<script type="text/x-template" id="drag-item">
 <transition name="fade" appear>
 	<div 
 		:draggable="disabledInput" 
@@ -184,7 +184,7 @@
 
 
 <!-- template to-do-list-item -->
-<template id="to-do-list-item">
+<script type="text/x-template" id="to-do-list-item">
 	<div 
 		class="list__to-do" 
 		:class="{completed: checked}">
@@ -216,7 +216,7 @@
 
 
 <!-- template to-do-list-item_link -->
-<template id="to-do-list-item_link">
+<script type="text/x-template" id="to-do-list-item_link">
 	<div 
 		class="list__to-do link" 
 		:class="{completed: checked}" >
@@ -247,7 +247,7 @@
 
 
 <!-- template user-input -->
-<template id="user-input">
+<script type="text/x-template" id="user-input">
 	<div 
 		class="user-input" 
 		:class="{edit: !disabled, 'visibility-placeholder': visibilityPlaceholder}" 
