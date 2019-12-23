@@ -845,8 +845,8 @@ Vue.component("core-app", {
 	}
 })
 
-console.log(new Vue({
+new Vue({
 	el: "#app", 
 	store,
-}))
+})
 
