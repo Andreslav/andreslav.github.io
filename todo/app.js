@@ -54,7 +54,7 @@ const store = new Vuex.Store({
 		}],
 		fixed: "16e7e822777",
 		position: [],
-		dark: matchMedia('(prefers-color-scheme: dark)').matches,
+		dark: false,
 	},
 	
 	getters: {
@@ -174,10 +174,14 @@ const store = new Vuex.Store({
 			let data = JSON.parse(sessionStorage.getItem('to-do-list'))
 			if(data != null) commit('SET_TODO', data)
 
-				let scheme = JSON.parse(sessionStorage.getItem('scheme'))
-			if(scheme != null) commit('SET_SCHEME', scheme)
+			let scheme = JSON.parse(sessionStorage.getItem('scheme'))
+			if(scheme != null) {
+				commit('SET_SCHEME', scheme)
+			} else {
+				commit('SET_SCHEME', matchMedia('(prefers-color-scheme: dark)').matches)
+			}
 
-				let fixed = JSON.parse(sessionStorage.getItem('fixed'))
+			let fixed = JSON.parse(sessionStorage.getItem('fixed'))
 			if(fixed != null) commit('SET_FIXED', fixed)
 		},
 
@@ -845,8 +849,8 @@ Vue.component("core-app", {
 	}
 })
 
+
 new Vue({
 	el: "#app", 
 	store,
 })
-
