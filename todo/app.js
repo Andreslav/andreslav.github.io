@@ -55,6 +55,7 @@ const store = new Vuex.Store({
 		fixed: "16e7e822777",
 		position: [],
 		dark: false,
+		mediaDark: matchMedia('(prefers-color-scheme: dark)'),
 	},
 	
 	getters: {
@@ -170,16 +171,12 @@ const store = new Vuex.Store({
 	},
 
 	actions: {
-		GET_DATA: async ({ commit }) => {
+		GET_DATA: async ({ commit, state }) => {
 			let data = JSON.parse(sessionStorage.getItem('to-do-list'))
 			if(data != null) commit('SET_TODO', data)
 
 			let scheme = JSON.parse(sessionStorage.getItem('scheme'))
-			if(scheme != null) {
-				commit('SET_SCHEME', scheme)
-			} else {
-				commit('SET_SCHEME', matchMedia('(prefers-color-scheme: dark)').matches)
-			}
+			commit('SET_SCHEME', scheme != null ? scheme : state.mediaDark.matches)
 
 			let fixed = JSON.parse(sessionStorage.getItem('fixed'))
 			if(fixed != null) commit('SET_FIXED', fixed)
@@ -365,6 +362,11 @@ const store = new Vuex.Store({
 		
 		
 		// SCHEME
+		SET_SCHEME: ({ commit, dispatch }, scheme) => {
+			commit('SET_SCHEME', scheme)
+			dispatch('SAVE_SCHEME')
+		},
+		
 		
 		TOGGLE_SCHEME: async ({ commit, state, dispatch }) => {
 			commit('SET_SCHEME', !state.dark)
@@ -791,6 +793,9 @@ Vue.component("core-app", {
 	},
 	mounted() {
 		this.$store.dispatch('GET_DATA')
+		this.$store.state.mediaDark.addListener((e) => {
+			this.$store.dispatch('SET_SCHEME', e.matches)
+		})
 	},
 	methods: {
 		addToDoList() {
